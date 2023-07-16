@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "gameutils.h": "c",
+        "stdlib.h": "c",
+        "conio.h": "c",
+        "time.h": "c",
+        "windows.h": "c",
+        "winsock2.h": "c",
+        "stdio.h": "c",
+        "utils.h": "c",
+        "ws2tcpip.h": "c"
+    }
+}
