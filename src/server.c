@@ -8,6 +8,10 @@
 #elif __linux__
 #include<sys/socket.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+typedef int SOCKET;
+#define INVALID_SOCKET -1
+#define SOCKET_ERROR -1
 #endif
 
 #define BUFFER_SIZE 1024
@@ -16,7 +20,7 @@
 int main() {
 init();
 int sock = createSock(); 
-struct sockaddr_in address = bindSock(INADDR_ANY ,49572, sock);
+struct sockaddr_in address = bindSock(INADDR_ANY ,49572);
 serverListen(sock, address, BACKLOG_SIZE);
 
 struct sockaddr_in client_info;
@@ -26,7 +30,11 @@ while (1) {
     char buffer[BUFFER_SIZE];
     serverRecv(conn, buffer, BUFFER_SIZE);
     serverGetConnInfo((struct sockaddr*)&client_info);
+    #ifdef _WIN32
     closesocket(conn);
+    #elif __linux__
+    close(conn);
+    #endif
 }
 
 clean();

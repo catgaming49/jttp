@@ -9,6 +9,10 @@
 #elif __linux__
 #include<sys/socket.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+typedef int SOCKET;
+#define INVALID_SOCKET -1
+#define SOCKET_ERROR -1
 #endif
 
 #define MAX_CONN 10
@@ -18,25 +22,34 @@ int curr_conn = 0;
 int sockets[MAX_CONN];
 
 void init() {
+    #ifdef _WIN32
     WSADATA Data;
     if (WSAStartup(MAKEWORD(2, 2), &Data) != 0) {
         perror("WSAStartup failed");
         exit(EXIT_FAILURE);
     }
+    #endif
 }
 
 void clean() {
-    for (int i = 0;i < curr_conn;i++) {
+    for (int i = 0; i < curr_conn; i++) {
+#ifdef _WIN32
         closesocket(sockets[i]);
+#elif __linux__
+        close(sockets[i]);
+#endif
     }
+#ifdef _WIN32
     WSACleanup();
+#endif
 }
+
 
 SOCKET createSock() {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == -1) {
         perror("Failed to create socket");
-        WSACleanup();
+        clean();
         exit(EXIT_FAILURE);
     }
     sockets[curr_conn] = sock;
@@ -44,7 +57,7 @@ SOCKET createSock() {
     return sock;
 }
 
-struct sockaddr_in bindSock(unsigned long ip_address, int port, int sock) {
+struct sockaddr_in bindSock(unsigned long ip_address, int port) {
     struct sockaddr_in address;
     memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET;
@@ -75,8 +88,8 @@ int serverAccept(int sock, struct sockaddr_in*client_info) {
     return conn;
 }
 
-size_t serverRecv(int conn, char*buffer, int buffer_size) {
-    size_t bytes_received = recv(conn, buffer, buffer_size, 0);
+int serverRecv(int conn, char*buffer, int buffer_size) {
+    int bytes_received = recv(conn, buffer, buffer_size, 0);
     if (bytes_received == -1) {
         perror("Receive failed");
         exit(EXIT_FAILURE);

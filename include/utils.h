@@ -9,6 +9,10 @@
 #elif __linux__
 #include<sys/socket.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+typedef int SOCKET;
+#define INVALID_SOCKET -1
+#define SOCKET_ERROR -1
 #endif
 
 
@@ -40,7 +44,7 @@ SOCKET createSock();
  * @param sock 
  * @return struct sockaddr_in 
  */
-struct sockaddr_in bindSock(unsigned long ip_address, int port, int sock);
+struct sockaddr_in bindSock(unsigned long ip_address, int port);
 
 void clientConnect(int sock, struct sockaddr_in address);
 
@@ -50,7 +54,7 @@ void serverListen(int sock,struct sockaddr_in address , int max_con);
 
 int serverAccept(int sock, struct sockaddr_in*client_info);
 
-size_t serverRecv(int conn, char*buffer, int buffer_size);
+int serverRecv(int conn, char*buffer, int buffer_size);
 
 void serverGetConnInfo(struct sockaddr *client_info);
 
