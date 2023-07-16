@@ -18,18 +18,15 @@ init();
 int sock = createSock(); 
 struct sockaddr_in address = bindSock(INADDR_ANY ,49572, sock);
 serverListen(sock, address, BACKLOG_SIZE);
+
 struct sockaddr_in client_info;
-int conn = serverAccept(sock, &client_info);
 
-printf("%s\n", inet_ntoa(client_info.sin_addr));
-
-char buffer[BUFFER_SIZE];
-size_t bytes_received = recv(conn, buffer, sizeof(buffer), 0);
-if (bytes_received == -1) {
-        perror("Receive failed");
-} else {
-    buffer[bytes_received] = '\0';
-    printf("Received data from client: %s\n", buffer);
+while (1) {
+    int conn = serverAccept(sock, &client_info);
+    char buffer[BUFFER_SIZE];
+    serverRecv(conn, buffer, BUFFER_SIZE);
+    serverGetConnInfo((struct sockaddr*)&client_info);
+    closesocket(conn);
 }
 
 clean();

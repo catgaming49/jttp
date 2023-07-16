@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<utils.h>
+#include<string.h>
 
 #ifdef _WIN32
 #include<winsock2.h>
@@ -64,14 +65,6 @@ void serverListen(int sock,struct sockaddr_in address , int max_con) {
     }
 }
 
-void clientConnect(int sock, struct sockaddr_in address) {
-    if (connect(sock, (struct sockaddr*)&address, sizeof(address)) == -1) {
-    perror("Connection failed");
-    clean(sock);
-    exit(EXIT_FAILURE);
-    }
-}
-
 int serverAccept(int sock, struct sockaddr_in*client_info) {
     socklen_t client_addr_size = sizeof(*client_info);
     int conn = accept(sock, (struct sockaddr*)client_info, &client_addr_size);
@@ -80,4 +73,51 @@ int serverAccept(int sock, struct sockaddr_in*client_info) {
         exit(EXIT_FAILURE);
     }
     return conn;
+}
+
+size_t serverRecv(int conn, char*buffer, int buffer_size) {
+    size_t bytes_received = recv(conn, buffer, buffer_size, 0);
+    if (bytes_received == -1) {
+        perror("Receive failed");
+        exit(EXIT_FAILURE);
+    } else {
+        buffer[bytes_received] = '\0';
+    }
+    return bytes_received;
+}
+
+void serverGetConnInfo(struct sockaddr *client_info) {
+    char client_ip[INET6_ADDRSTRLEN]; // Buffer to hold the client's IP address string
+
+    if (client_info->sa_family == AF_INET) {
+        // IPv4 address
+        struct sockaddr_in *ipv4_client_info = (struct sockaddr_in *)client_info;
+        inet_ntop(AF_INET, &(ipv4_client_info->sin_addr), client_ip, INET6_ADDRSTRLEN);
+        printf("IP Type: IPv4\n");
+        printf("Client IP address: %s\n", client_ip);
+        printf("Client Port number: %d\n", ntohs(ipv4_client_info->sin_port));
+    } else if (client_info->sa_family == AF_INET6) {
+        // IPv6 address
+        struct sockaddr_in6 *ipv6_client_info = (struct sockaddr_in6 *)client_info;
+        inet_ntop(AF_INET6, &(ipv6_client_info->sin6_addr), client_ip, INET6_ADDRSTRLEN);
+        printf("IP Type: IPv6\n");
+        printf("Client IP address: %s\n", client_ip);
+        printf("Client Port number: %d\n", ntohs(ipv6_client_info->sin6_port));
+    } else {
+        printf("Unknown IP address type\n");
+    }
+}
+
+void clientConnect(int sock, struct sockaddr_in address) {
+    if (connect(sock, (struct sockaddr*)&address, sizeof(address)) == -1) {
+    perror("Connection failed");
+    clean(sock);
+    exit(EXIT_FAILURE);
+    }
+}
+
+void clientSend(int sock, char*data) {
+    if (send(sock, data, strlen(data), 0) == -1) {
+        perror("Send failed");
+    }
 }

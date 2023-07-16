@@ -15,11 +15,7 @@ init();
 int sock = createSock(); 
 struct sockaddr_in address = bindSock(inet_addr("127.0.0.1"), 49572, sock);
 clientConnect(sock, address);
-
-char message[] = "Hello, world!";
-if (send(sock, message, sizeof(message), 0) == -1) {
-    perror("Send failed");
-}
+clientSend(sock, "Hello, world!");
 
 clean();
 return 0;
